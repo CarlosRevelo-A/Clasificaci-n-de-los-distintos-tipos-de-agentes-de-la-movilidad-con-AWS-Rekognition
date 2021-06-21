@@ -34,6 +34,9 @@ Iniciar la red
 
 Una vez entrenada la red se tiene un modelo con el cual se empieza a realizar pruebas de diferenciación de los distintos tipos de agentes de la movilidad, para ello se inicia la red neuronal a través del siguiente código en Python.
 
+#Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#PDX-License-Identifier: MIT-0 (For details, see https://github.com/awsdocs/amazon-rekognition-custom-labels-developer-guide/blob/master/LICENSE-SAMPLECODE.)
+
 import boto3
 
 def start_model(project_arn, model_arn, version_name, min_inference_units):
@@ -69,9 +72,11 @@ def main():
 if __name__ == "__main__":
     main()
     
+    
  Análisis de video con modelo basado en Rekognition
     
 Una vez iniciada la red neuronal se escoge un video y se analiza con el código en Python mostrado en la Figura 9, este código toma el video a analizar desde el equipo donde se realiza el análisis sin necesidad de subirlo a s3 de AWS, dentro de la función analyzeVideo se realiza el llamado del SDK para Python: “boto3” y por medio del ARN del modelo se especifica con cual red neuronal se trabaja; previamente instalada la librería OpenCv, se hace uso de la función cv2.VideoCapture para poder analizar el video cuadro por cuadro dentro del análisis de estas imágenes se utiliza la función “customLabel” la cual está dentro de SDK boto3, esta crea un diccionario donde se almacena información de las etiquetas detectadas en las imágenes procesadas, por ejemplo el nombre y las coordenadas para poder graficar el “bounding box” para cada etiqueta personalizada; luego , a través de la función cv2.VideoWriter de OpenCv se crea un nuevo video en formato AVI a partir de las imágenes procesadas para así lograr obtener un resultado visual. 
+
 
 import json
 import boto3
@@ -213,7 +218,40 @@ se obtiene el siguiente resultado
 
 ![image](https://user-images.githubusercontent.com/85694217/122782464-5e008b80-d276-11eb-8bdf-5790b816b881.png)
 
+Detener la red
 
+Al finalizar el análisis del video se procede a detener la red para así poder dejar de utilizar el sistema de AWS mediante el código mostrado a continuacion.
+
+#Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#PDX-License-Identifier: MIT-0 (For details, see https://github.com/awsdocs/amazon-rekognition-custom-labels-developer-guide/blob/master/LICENSE-SAMPLECODE.)
+
+import boto3
+import time
+
+
+def stop_model(model_arn):
+
+    client=boto3.client('rekognition')
+
+    print('Stopping model:' + model_arn)
+
+    #Stop the model
+    try:
+        response=client.stop_project_version(ProjectVersionArn=model_arn)
+        status=response['Status']
+        print ('Status: ' + status)
+    except Exception as e:  
+        print(e)  
+
+    print('Done...')
+    
+def main():
+    
+    model_arn='arn:aws:rekognition:us-east-1:822849167361:project/etiquetas_de_noche/version/etiquetas_de_noche.2021-06-08T15.51.26/1623185487275'
+    stop_model(model_arn)
+
+if __name__ == "__main__":
+    main() 
 
 
 
