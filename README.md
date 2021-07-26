@@ -9,8 +9,10 @@ Se procede a descargar la librería para Python proporcionada por AWS, el SDK �
 ![Captura](https://user-images.githubusercontent.com/85694217/121562853-7bfcff00-c9df-11eb-8c36-b01be089c1de.PNG)
 
 Crear Dataset
+
 La toma de imágenes se realiza con la cámara descrita en II-B, se toman 1000 imágenes y se empiezan a almacenar en S3 el cual es un servicio de Amazon web servicies, este depósito online se utiliza para almacenar el proyecto, conjuntos de datos y modelos de etiquetas personalizadas de Amazon Rekognition.
 Para empezar a etiquetar las imágenes se crea el proyecto “etiquetas_de_noche”.
+
 
 Dentro del proyecto se guarda el conjunto de datos (imágenes tomadas) y en la opción crear etiquetas se añade las 6 etiquetas descritas en II-A.
 
