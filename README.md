@@ -77,7 +77,7 @@ if __name__ == "__main__":
     
  Análisis de video con modelo basado en Rekognition
     
-Una vez iniciada la red neuronal se escoge un video y se analiza con el código en Python mostrado en la Figura 9, este código toma el video a analizar desde el equipo donde se realiza el análisis sin necesidad de subirlo a s3 de AWS, dentro de la función analyzeVideo se realiza el llamado del SDK para Python: “boto3” y por medio del ARN del modelo se especifica con cual red neuronal se trabaja; previamente instalada la librería OpenCv, se hace uso de la función cv2.VideoCapture para poder analizar el video cuadro por cuadro dentro del análisis de estas imágenes se utiliza la función “customLabel” la cual está dentro de SDK boto3, esta crea un diccionario donde se almacena información de las etiquetas detectadas en las imágenes procesadas, por ejemplo el nombre y las coordenadas para poder graficar el “bounding box” para cada etiqueta personalizada; luego , a través de la función cv2.VideoWriter de OpenCv se crea un nuevo video en formato AVI a partir de las imágenes procesadas para así lograr obtener un resultado visual. 
+Una vez iniciada la red neuronal se escoge un video y se analiza con el código en Python mostrado a continuacion, este código toma el video a analizar desde el equipo donde se realiza el análisis sin necesidad de subirlo a s3 de AWS, dentro de la función analyzeVideo se realiza el llamado del SDK para Python: “boto3” y por medio del ARN del modelo se especifica con cual red neuronal se trabaja; previamente instalada la librería OpenCv, se hace uso de la función cv2.VideoCapture para poder analizar el video cuadro por cuadro dentro del análisis de estas imágenes se utiliza la función “customLabel” la cual está dentro de SDK boto3, esta crea un diccionario donde se almacena información de las etiquetas detectadas en las imágenes procesadas, por ejemplo el nombre y las coordenadas para poder graficar el “bounding box” para cada etiqueta personalizada; luego , a través de la función cv2.VideoWriter de OpenCv se crea un nuevo video en formato AVI a partir de las imágenes procesadas para así lograr obtener un resultado visual. 
 
 
 import json
@@ -91,21 +91,12 @@ import numpy as np
 import collections
 from PIL import Image, ImageDraw, ExifTags, ImageColor, ImageFont
 
-import json
-import boto3
-import cv2
-import math
-import matplotlib.pyplot as plt
-import time
-import io
-import numpy as np
-import collections
-from PIL import Image, ImageDraw, ExifTags, ImageColor, ImageFont
 
 def analyzeVideo():
-    videoFile = "23seg.mp4" #el nombre del video ubicado en el escritorio 
-    projectVersionArn = "arn:aws:rekognition:us-east-1:822849167361:project/etiquetas_de_noche/version/etiquetas_de_noche.2021-03-30T12.14.47/1617124488272"
- 
+    
+    videoFile = "demmo.mp4" #el nombre del video ubicado en el escritorio
+    projectVersionArn = "arn:aws:rekognition:us-east-1:822849167361:project/etiquetas_de_noche/version/etiquetas_de_noche.2021-06-08T15.51.26/1623185487275"
+
     global c,m,p,t,b,bus,moto,car,buses,truck,persona,bicicleta
     moto=0
     car=0
@@ -113,24 +104,33 @@ def analyzeVideo():
     truk=0
     bicicleta=0
     buses=0
-    
-    rekognition = boto3.client('rekognition')           
+    c=0
+    p=0
+    m=0
+
+
+    rekognition = boto3.client('rekognition')
     cap = cv2.VideoCapture(videoFile)
-    frameRate = cap.get(5) 
-    frame_width = int(cap.get(3)) 
-    frame_height = int(cap.get(4)) 
-   
+    frameRate = cap.get(5)
+    print(frameRate)
+    frame_width = int(cap.get(3))
+    frame_height = int(cap.get(4))
+
     size = (frame_width, frame_height)
-    result = cv2.VideoWriter('prueba2343.avi',  # cambiar AVI
-                         cv2.VideoWriter_fourcc(*'MJPG'), 
-                         30, size) 
+    result = cv2.VideoWriter('Demostracion1.avi',  # cambiar AVI
+                     cv2.VideoWriter_fourcc(*'MJPG'), 
+                     30, size)
     while(cap.isOpened()):
-        frameId = cap.get(1) 
+        frameId = cap.get(1)*3 #aumentar imagenes procesadas 
         print("Processing frame id: {}".format(frameId))
         ret, frame = cap.read()
         if (ret != True):
             break
         if (frameId % math.floor(frameRate) == 0):
+        #else:
+        #v=frameId % math.floor(frameRate)
+        #if (v== 0):
+
             hasFrame, imageBytes = cv2.imencode(".jpg", frame)
 
             if(hasFrame):
@@ -138,16 +138,13 @@ def analyzeVideo():
                     Image={
                         'Bytes': imageBytes.tobytes(),
                     },
-                    ProjectVersionArn = projectVersionArn
-                )
+                ProjectVersionArn = projectVersionArn
+            )
         stream = io.BytesIO(imageBytes.tobytes())
         image=Image.open(stream)
         imgWidth, imgHeight = image.size  
-        draw = ImageDraw.Draw(image)  
-
-
-        # calcular y dibujar bounding boxes para cada etiqueta detectada       
-           
+        draw = ImageDraw.Draw(image)
+        # calcular y dibujar bounding boxes para cada etiqueta detectada
         for customLabel in response['CustomLabels']:
             if 'Geometry' in customLabel:
                 box = customLabel['Geometry']['BoundingBox']
@@ -155,11 +152,9 @@ def analyzeVideo():
                 top = imgHeight * box['Top']
                 width = imgWidth * box['Width']
                 height = imgHeight * box['Height']
-                
-                #font_path = "/home/ec2-user/SageMaker/DejaVuSans.ttf"
-                #font_size = 30
-                #fnt = ImageFont.truetype(font_path, font_size)
-                fnt = ImageFont.truetype('/Library/Fonts/arial.ttf', 30)#cambiar numero a 30
+            
+            
+                fnt = ImageFont.truetype('/Library/Fonts/arial.ttf', 20)#cambiar numero a 30
 
                 draw.text((left,top), customLabel['Name'], fill='#00d400', font=fnt) 
 
@@ -169,56 +164,52 @@ def analyzeVideo():
                     (left + width, top + height),
                     (left , top + height),
                     (left, top))
-                draw.line(points, fill='#00d400', width=5)
-                print(top)
+                draw.line(points, fill='#00d400', width=2)
+                if customLabel['Confidence'] > 90:
+               
+                    if customLabel['Name']== "car": #and height>150:
+                        car=car+1
+                        c=car/40
+                        print (customLabel['Name'])
+                        print (height)
+                    if customLabel['Name']== "person": #and height>150:
+                        persona=persona+1
+                        p=persona/10
+                        print (customLabel['Name'])
+                        print (height)
 
-                #points = ((0.2,200),(1280,200))
+                    if customLabel['Name']== "motorcycle": #and height>150:
+                        moto=moto+1
+                        m=moto/30
+                    
+                        print (customLabel['Name'])
 
-                #draw.line(points, fill='#00d400', width=5)
+        points = ((600,0),(500,700))
+
+        draw.line(points, fill='#00d400', width=1)
 
 
 
-                
-        result.write(np.array(image))
-        
-       
-        contador = collections.Counter(customLabel)
-        #print (contador['Name'])
-
-        if contador['Name']== "motorcycle" and top>200:
-            moto=moto+1
-            m=moto/30    
             
-        if contador['Name']== "car": #and top>200:
-            car=car+1
-            c=car/30
-        if contador['Name']== "bike": #and top>200:
-            bicicleta=bicicleta+1
-            b=bicicleta/30    
-        if contador['Name']== "truck": #and top>200:
-            truck=truck+1
-            t=truck/30      
-        if contador['Name']== "bus": #and top>200:
-            buses=buses+1
-            bus=buses/30
-        if contador['Name']== "person": #and top>200:
-            persona=persona+1
-            p=persona/30      
-                
-    print("motos ="+ repr(m))    
+        result.write(np.array(image))
+    
+   
+        #contador = collections.Counter(customLabel)
+             
+            
+        
+
+    print("motos ="+ repr(m)) 
     print("carros ="+ repr(c))
-    print("bicicletas ="+ repr(b))
-    print("vehiculos pesados (camiones) ="+ repr(t))
-    print("personas ="+ repr(p))
-    print("buses ="+ repr(bus))   
+    print("personas ="+ repr(p))    
     cap.release()
     result.release()
-
 analyzeVideo()
 
 se obtiene el siguiente resultado
 
-![image](https://user-images.githubusercontent.com/85694217/122782464-5e008b80-d276-11eb-8bdf-5790b816b881.png)
+![Captura de pantalla (290)](https://user-images.githubusercontent.com/85694217/129100842-751fa34f-ec8c-4cd2-91c9-28948a89d515.png)
+
 
 Detener la red
 
