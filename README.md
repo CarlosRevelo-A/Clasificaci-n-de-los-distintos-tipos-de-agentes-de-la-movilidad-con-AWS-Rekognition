@@ -101,13 +101,15 @@ def analyzeVideo():
     moto=0
     car=0
     persona=0
-    truk=0
+    truck=0
     bicicleta=0
     buses=0
     c=0
     p=0
     m=0
-
+    t=0
+    b=0
+    bus=0
 
     rekognition = boto3.client('rekognition')
     cap = cv2.VideoCapture(videoFile)
@@ -165,26 +167,36 @@ def analyzeVideo():
                     (left , top + height),
                     (left, top))
                 draw.line(points, fill='#00d400', width=2)
-                if customLabel['Confidence'] > 90:
+                if customLabel['Confidence'] > 93:
                
-                    if customLabel['Name']== "car": #and height>150:
+                    if customLabel['Name']== "car": and height>150:
                         car=car+1
                         c=car/40
-                        print (customLabel['Name'])
-                        print (height)
-                    if customLabel['Name']== "person": #and height>150:
+                        
+                    if customLabel['Name']== "person": and height>150:
                         persona=persona+1
-                        p=persona/10
-                        print (customLabel['Name'])
-                        print (height)
+                        p=persona/45
+                      
 
-                    if customLabel['Name']== "motorcycle": #and height>150:
+                    if customLabel['Name']== "motorcycle": and height>150:
                         moto=moto+1
                         m=moto/30
                     
+                    if customLabel['Name']== "truck": and height>150:
+                        truck=truk+1
+                        t=truck/36
+                    
+                    if customLabel['Name']== "bike": and height>150:
+                        bicileta=bicileta+1
+                        b=bicileta/30
+                    
+                    if customLabel['Name']== "bus": and height>150:
+                        buses=buses+1
+                        bus=buses/30
+                    
                         print (customLabel['Name'])
 
-        points = ((600,0),(500,700))
+        points = ((500,0),(500,700))
 
         draw.line(points, fill='#00d400', width=1)
 
@@ -201,7 +213,10 @@ def analyzeVideo():
 
     print("motos ="+ repr(m)) 
     print("carros ="+ repr(c))
-    print("personas ="+ repr(p))    
+    print("personas ="+ repr(p))
+    print("bicicletas ="+ repr(b))  
+    print("camioness ="+ repr(t))  
+    print("buses ="+ repr(bus))  
     cap.release()
     result.release()
 analyzeVideo()
